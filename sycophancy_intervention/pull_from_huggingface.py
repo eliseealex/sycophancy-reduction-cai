@@ -191,12 +191,20 @@ def build_all_datasets() -> None:
     utils.save_pickle(out_path, train_dict)
 
 
-def collect_all_datasets() -> Dict[str, str]:
+def collect_all_datasets(data_set_to_use=None) -> Dict[str, str]:
   build_all_datasets()
 
   result = {}
 
-  for name, subset in zip(DATASET_NAMES, DATASET_SUBSETS):
+  if data_set_to_use is None:
+    for name, subset in zip(DATASET_NAMES, DATASET_SUBSETS):
+      full_name = name if not subset else f'{name}_{subset}'
+      out_path = os.path.join(DATA_FOLDER, full_name + '.pickle')
+      result.update(utils.load_pickle(out_path))
+  else:
+    name = DATASET_NAMES[data_set_to_use]
+    subset = DATASET_SUBSETS[data_set_to_use]
+    
     full_name = name if not subset else f'{name}_{subset}'
     out_path = os.path.join(DATA_FOLDER, full_name + '.pickle')
     result.update(utils.load_pickle(out_path))

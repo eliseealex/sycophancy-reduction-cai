@@ -21,23 +21,38 @@ import utils
 DATA_DIR = 'data'
 utils.ensure_dir(DATA_DIR)
 
-generate_train = False
-max_train_ex = 1e5
+generate_train = True
+max_train_ex = 50
 max_synthetic_eval_examples = 50
+is_not_enabled = False
+add_user_opinion = False
+is_linguistic = False
+is_cleanup_not = True
+# None if all, otherwise a number of a dataset to use
+data_set_to_use = None
+
+generate_synthetic_eval = False
 synthetic_min_num = 100
 synthetic_max_num = 1000
 synthetic_answer_multiplier_min = 0.9
 synthetic_answer_multiplier_max = 1.1
-
-generate_synthetic_eval = True
-add_user_opinion = False
 ################################################################################
 #################                    MAIN                   ####################
 ################################################################################
 if generate_train:
-  generated_examples = gd.generate_nlp_data(max_train_ex)
+  generated_examples = gd.generate_nlp_data(use_opinion=add_user_opinion, 
+                                            is_not_enabled=is_not_enabled, 
+                                            is_linguistic=is_linguistic,
+                                            is_cleanup_not=is_cleanup_not,
+                                            data_set_to_use=data_set_to_use,
+                                            num_examples=max_train_ex)
   utils.print_an_example(generated_examples)
-  out_name = f'synthetic_train_{len(generated_examples)}.tsv'
+  opinion_suffix = '_no_opinion' if not add_user_opinion else ''
+  is_not_suffix = '_is_not' if is_not_enabled else ''
+  is_linguistic_suffix = '_not_linguistic' if not is_linguistic else ''
+  is_cleanup_not_suffix = '_cleanup_not' if is_cleanup_not else ''
+  dataset_suffix = '_{data_set_to_use}' if data_set_to_use is not None else ''
+  out_name = f'synthetic_train_{len(generated_examples)}{opinion_suffix}{is_not_suffix}{is_linguistic_suffix}{is_cleanup_not_suffix}{dataset_suffix}.tsv'
   out_path = os.path.join(DATA_DIR, out_name)
   utils.save_pickle(out_path, generated_examples)
 
