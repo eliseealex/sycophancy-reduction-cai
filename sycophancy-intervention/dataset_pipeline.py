@@ -1,6 +1,6 @@
 """Pipeline for generating synthetic tuning/evaluation data.
 
-Copyright 2023 Google LLC
+Initial code from Google LLC, modified by the authors of the research.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,11 +21,16 @@ import utils
 DATA_DIR = 'data'
 utils.ensure_dir(DATA_DIR)
 
-generate_train = True
+generate_train = False
 max_train_ex = 1e5
+max_synthetic_eval_examples = 50
+synthetic_min_num = 100
+synthetic_max_num = 1000
+synthetic_answer_multiplier_min = 0.9
+synthetic_answer_multiplier_max = 1.1
 
 generate_synthetic_eval = True
-add_user_opinion = True
+add_user_opinion = False
 ################################################################################
 #################                    MAIN                   ####################
 ################################################################################
@@ -37,7 +42,12 @@ if generate_train:
   utils.save_pickle(out_path, generated_examples)
 
 if generate_synthetic_eval:
-  examples = gd.generate_math_eval_data(add_user_opinion)
+  examples = gd.generate_math_eval_data(use_opinion=add_user_opinion, 
+                                        num_of_examples=max_synthetic_eval_examples,
+                                        min_num=synthetic_min_num,
+                                        max_num=synthetic_max_num,
+                                        answer_multiplier_min=synthetic_answer_multiplier_min,
+                                        answer_multiplier_max=synthetic_answer_multiplier_max)
   utils.print_an_example(examples)
   out_name = f'synthetic_eval_opinion{add_user_opinion}_{len(examples)}.tsv'
   out_path = os.path.join(DATA_DIR, out_name)
