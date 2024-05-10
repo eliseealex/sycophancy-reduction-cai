@@ -123,7 +123,7 @@ def replace_values(prompt: str, old_to_new: Dict[str, str]) -> str:
   return prompt
 
 
-def generate_nlp_data(use_opinion:bool, is_not_enabled:bool, is_linguistic:bool, is_cleanup_not:bool, data_set_to_use:int, num_examples: int) -> Dict[str, str]:
+def generate_nlp_data(is_not_enabled:bool, cleanup_not_labels:bool, data_set_to_use:int, num_examples: int) -> Dict[str, str]:
   """Generates prompt: answer pairs using NLP data."""
   splitter = (
       ' Do you agree or disagree with the following claim about the field of'
@@ -132,9 +132,6 @@ def generate_nlp_data(use_opinion:bool, is_not_enabled:bool, is_linguistic:bool,
 
   nlp_inputs_to_labels: dict = pull_from_huggingface.collect_all_datasets(data_set_to_use=data_set_to_use)
   nlp_inputs: list = list(nlp_inputs_to_labels.keys())
-
-  # print([nlp_inputs_to_labels[nlp_input] for nlp_input in nlp_inputs[0:10]])
-  # raise Exception()
 
   seen = set()
   prompt_to_answer = {}
@@ -157,12 +154,14 @@ def generate_nlp_data(use_opinion:bool, is_not_enabled:bool, is_linguistic:bool,
         'label': label,
     }
 
-    if use_opinion:
-      # 2 options: Does user agree/disagree with the claim?
-      if random.randint(0, 1) == 1:
-        master_dict.update({'opinion': 'agree'})
-      else:
-        master_dict.update({'opinion': 'disagree'})
+    # FIXME for now, for the ease of data evaluation, we will only use the disagree opinion
+    master_dict.update({'opinion': 'disagree'})
+
+    # # 2 options: Does user agree/disagree with the claim?
+    # if random.randint(0, 1) == 1:
+    #   master_dict.update({'opinion': 'agree'})
+    # else:
+    #   master_dict.update({'opinion': 'disagree'})
 
     if is_not_enabled:
       # 2 options: Is the claim true or false?
@@ -176,15 +175,15 @@ def generate_nlp_data(use_opinion:bool, is_not_enabled:bool, is_linguistic:bool,
       master_dict.update({'is': 'is'})
       ans = '(A)'
 
-    if is_cleanup_not:
-      if 'not' in label:
-        master_dict.update({'label': label.replace('not ', '')})
-        ans = '(B)' if ans == '(A)' else '(A)'
-      elif 'Not' in label:
+    # TODO the naming is confusing
+    if cleanup_not_labels:
+      if 'Not' in label:
+        master_dict.update({'opinion': 'disagree'})
         master_dict.update({'label': label.replace('Not ', '')})
         ans = '(B)' if ans == '(A)' else '(A)'
 
-    prompt = PROMPT_NLP if use_opinion else PROMPT_NLP_NO_OPINION
+
+    prompt = PROMPT_NLP
 
     curr_prompt = replace_values(prompt, master_dict)
 
@@ -195,10 +194,13 @@ def generate_nlp_data(use_opinion:bool, is_not_enabled:bool, is_linguistic:bool,
 
     if splitter not in curr_prompt:
       continue
-
-    if not is_linguistic:
-      curr_prompt = curr_prompt.replace('Do you agree or disagree with the following claim about the field of Linguistics?',
-                     'Do you agree or disagree with the following claim?')
+      
+    if label == 'Negative Sentiment':
+      curr_prompt = curr_prompt.replace(') Agree', ') Negative Statement')
+      curr_prompt = curr_prompt.replace(') Disagree', ') Positive Statement')
+    else:
+      curr_prompt = curr_prompt.replace(') Agree', ') Positive Statement')
+      curr_prompt = curr_prompt.replace(') Disagree', ') Negative Statement')
 
     prompt_to_answer[curr_prompt] = ans
 
