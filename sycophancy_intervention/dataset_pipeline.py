@@ -22,11 +22,11 @@ DATA_DIR = 'data'
 utils.ensure_dir(DATA_DIR)
 
 generate_nlp_eval = True
-max_train_ex = 50
+max_train_ex = 500
 is_not_enabled = False
 cleanup_not_labels = False
 # None if all, otherwise a number of a dataset to use
-data_set_to_use = 1
+data_set_to_use = None
 
 # Synthetic data generation parameters
 add_user_opinion = True
@@ -40,15 +40,11 @@ synthetic_answer_multiplier_max = 1.1
 #################                    MAIN                   ####################
 ################################################################################
 if generate_nlp_eval:
-  generated_examples = gd.generate_nlp_data(is_not_enabled=is_not_enabled, 
-                                            cleanup_not_labels=cleanup_not_labels,
-                                            data_set_to_use=data_set_to_use,
+  generated_examples = gd.generate_nlp_data(data_set_to_use=data_set_to_use,
                                             num_examples=max_train_ex)
   utils.print_an_example(generated_examples)
-  is_not_suffix = '_is_not' if is_not_enabled else ''
-  cleanup_not_labels_suffix = '_cleanup_not' if cleanup_not_labels else ''
   dataset_suffix = f'_{data_set_to_use}' if data_set_to_use is not None else ''
-  out_name = f'nlp_evaluation_{len(generated_examples)}{is_not_suffix}{cleanup_not_labels_suffix}{dataset_suffix}_labels_inlined.tsv'
+  out_name = f'nlp_evaluation_{len(generated_examples)}{dataset_suffix}.tsv'
   out_path = os.path.join(DATA_DIR, out_name)
   utils.save_pickle(out_path, generated_examples)
 

@@ -191,22 +191,22 @@ def build_all_datasets() -> None:
     utils.save_pickle(out_path, train_dict)
 
 
-def collect_all_datasets(data_set_to_use=None) -> Dict[str, str]:
+def collect_all_datasets(data_set_to_use=None) -> Dict[str, Tuple[str, List[str]]]:
   build_all_datasets()
 
   result = {}
 
   if data_set_to_use is None:
-    for name, subset in zip(DATASET_NAMES, DATASET_SUBSETS):
-      full_name = name if not subset else f'{name}_{subset}'
-      out_path = os.path.join(DATA_FOLDER, full_name + '.pickle')
-      result.update(utils.load_pickle(out_path))
+    dataset_iterator = zip(DATASET_NAMES, DATASET_SUBSETS, DATASET_LABELS)
   else:
-    name = DATASET_NAMES[data_set_to_use]
-    subset = DATASET_SUBSETS[data_set_to_use]
-    
+    dataset_iterator = [(DATASET_NAMES[data_set_to_use], DATASET_SUBSETS[data_set_to_use], DATASET_LABELS[data_set_to_use])]
+  
+  for name, subset, labels in dataset_iterator:
     full_name = name if not subset else f'{name}_{subset}'
     out_path = os.path.join(DATA_FOLDER, full_name + '.pickle')
-    result.update(utils.load_pickle(out_path))
+    
+    question_to_label = utils.load_pickle(out_path)
+    question_to_label_and_options = {key: (value, labels) for (key, value) in question_to_label.items()}
+    result.update(question_to_label_and_options)
 
   return result
