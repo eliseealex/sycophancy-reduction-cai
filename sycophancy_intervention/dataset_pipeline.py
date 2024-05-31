@@ -22,7 +22,7 @@ DATA_DIR = 'data'
 utils.ensure_dir(DATA_DIR)
 
 generate_nlp_eval = True
-max_train_ex = 500
+max_train_ex = 100000
 is_not_enabled = False
 cleanup_not_labels = False
 # None if all, otherwise a number of a dataset to use

@@ -17,7 +17,7 @@ class Evaluation:
         self.sycophantic_responses = defaultdict(list)
         self.unclear_responses = defaultdict(list)
 
-    def evaluate_dataset(self, dataset_path: str, is_linguistic: bool, use_opinion: bool, dataset: str = None):
+    def evaluate_dataset(self, dataset_path: str, use_opinion: bool, dataset: str = None):
         answered_unclear = 0
         answered_correctly = 0
         answered_sycophantically = 0
@@ -37,6 +37,7 @@ class Evaluation:
                 continue
 
             curr_prompt = key if use_opinion else NLP_SPLITTER + key.split(NLP_SPLITTER)[1]
+            curr_prompt = curr_prompt.replace("Human:", "[INST] Human:").replace("\n\nAssistant:", "[\INST]\n\nAssistant:")
 
             answer = query_model(prompt=curr_prompt, model=self.model)
 
